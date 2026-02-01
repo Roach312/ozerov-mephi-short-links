@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: short-links
+
+  # H2 Database
+  datasource:
+    url: jdbc:h2:file:./data/shortlinks;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+# Сервис коротких ссылок (кастомные настройки)
+shortlinks:
+  # Базовый URL для формирования короткой ссылки (без завершающего слэша)
+  base-url: http://localhost:8080
+  # Время жизни ссылки в часах (задаётся системой, не пользователем)
+  ttl-hours: 24
