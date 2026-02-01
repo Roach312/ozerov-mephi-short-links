@@ -104,7 +104,6 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version> <!-- ← ДОБАВЬ ЭТО -->
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -119,6 +118,21 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <!-- Spotless: проверка и автоформатирование кода (линт) -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <java>
+                        <googleJavaFormat>
+                            <version>1.17.0</version>
+                            <style>AOSP</style>
+                        </googleJavaFormat>
+                        <removeUnusedImports/>
+                    </java>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,0 +1,28 @@
+# GitHub Actions: сборка, тесты и линт (Spotless) для Maven-проекта
+name: CI (Build, Test, Lint)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-test-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Lint (Spotless check)
+        run: ./mvnw spotless:check --no-transfer-progress
+
+      - name: Build and run tests
+        run: ./mvnw verify --no-transfer-progress -DskipTests=false
