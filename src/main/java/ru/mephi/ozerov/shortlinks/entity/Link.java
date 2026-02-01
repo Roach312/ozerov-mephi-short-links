@@ -1,10 +1,9 @@
 package ru.mephi.ozerov.shortlinks.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.Instant;
 import java.util.UUID;
+import lombok.*;
 
 @Entity
 @Table(name = "links", indexes = @Index(columnList = "short_code", unique = true))
@@ -28,9 +27,7 @@ public class Link {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    /**
-     * Максимальное количество переходов. null = без лимита.
-     */
+    /** Максимальное количество переходов. null = без лимита. */
     @Column(name = "click_limit")
     private Integer clickLimit;
 

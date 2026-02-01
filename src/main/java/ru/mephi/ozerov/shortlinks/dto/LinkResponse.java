@@ -1,10 +1,9 @@
 package ru.mephi.ozerov.shortlinks.dto;
 
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 import ru.mephi.ozerov.shortlinks.entity.Link;
-
-import java.time.Instant;
 
 @Data
 @Builder
@@ -21,7 +20,10 @@ public class LinkResponse {
     private boolean available;
 
     public static LinkResponse from(Link link, String baseUrl) {
-        String shortUrl = baseUrl.endsWith("/") ? baseUrl + link.getShortCode() : baseUrl + "/" + link.getShortCode();
+        String shortUrl =
+                baseUrl.endsWith("/")
+                        ? baseUrl + link.getShortCode()
+                        : baseUrl + "/" + link.getShortCode();
         return LinkResponse.builder()
                 .id(link.getId())
                 .shortCode(link.getShortCode())

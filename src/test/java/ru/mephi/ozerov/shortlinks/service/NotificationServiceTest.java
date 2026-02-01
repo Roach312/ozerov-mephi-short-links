@@ -1,5 +1,12 @@
 package ru.mephi.ozerov.shortlinks.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -10,22 +17,12 @@ import ru.mephi.ozerov.shortlinks.entity.Notification;
 import ru.mephi.ozerov.shortlinks.entity.NotificationType;
 import ru.mephi.ozerov.shortlinks.repository.NotificationRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
 
-    @Mock
-    private NotificationRepository notificationRepository;
+    @Mock private NotificationRepository notificationRepository;
 
-    @InjectMocks
-    private NotificationService notificationService;
+    @InjectMocks private NotificationService notificationService;
 
     private static final UUID USER_ID = UUID.randomUUID();
 
@@ -35,13 +32,13 @@ class NotificationServiceTest {
         when(notificationRepository.save(any(Notification.class))).thenReturn(saved);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-        Notification result = notificationService.create(
-                USER_ID,
-                10L,
-                "abc123",
-                NotificationType.CLICK_LIMIT_REACHED,
-                "Лимит исчерпан"
-        );
+        Notification result =
+                notificationService.create(
+                        USER_ID,
+                        10L,
+                        "abc123",
+                        NotificationType.CLICK_LIMIT_REACHED,
+                        "Лимит исчерпан");
 
         verify(notificationRepository).save(captor.capture());
         Notification captured = captor.getValue();
@@ -57,9 +54,7 @@ class NotificationServiceTest {
 
     @Test
     void findByUserId_returnsListFromRepository() {
-        List<Notification> list = List.of(
-                Notification.builder().id(1L).userId(USER_ID).build()
-        );
+        List<Notification> list = List.of(Notification.builder().id(1L).userId(USER_ID).build());
         when(notificationRepository.findByUserIdOrderByCreatedAtDesc(USER_ID)).thenReturn(list);
 
         List<Notification> result = notificationService.findByUserId(USER_ID);
@@ -70,13 +65,10 @@ class NotificationServiceTest {
 
     @Test
     void markAsRead_whenNotificationExistsAndBelongsToUser_setsReadFlag() {
-        Notification n = Notification.builder()
-                .id(1L)
-                .userId(USER_ID)
-                .readFlag(false)
-                .build();
+        Notification n = Notification.builder().id(1L).userId(USER_ID).readFlag(false).build();
         when(notificationRepository.findById(1L)).thenReturn(Optional.of(n));
-        when(notificationRepository.save(any(Notification.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(notificationRepository.save(any(Notification.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
 
         notificationService.markAsRead(1L, USER_ID);
 
@@ -87,11 +79,7 @@ class NotificationServiceTest {
 
     @Test
     void markAsRead_whenNotificationBelongsToOtherUser_doesNothing() {
-        Notification n = Notification.builder()
-                .id(1L)
-                .userId(USER_ID)
-                .readFlag(false)
-                .build();
+        Notification n = Notification.builder().id(1L).userId(USER_ID).readFlag(false).build();
         when(notificationRepository.findById(1L)).thenReturn(Optional.of(n));
 
         notificationService.markAsRead(1L, UUID.randomUUID());

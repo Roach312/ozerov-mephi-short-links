@@ -1,6 +1,9 @@
 package ru.mephi.ozerov.shortlinks.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -11,13 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import ru.mephi.ozerov.shortlinks.entity.Link;
 import ru.mephi.ozerov.shortlinks.service.LinkService;
 
-import java.io.IOException;
-import java.util.Optional;
-import java.util.UUID;
-
 /**
- * Обрабатывает переход по короткой ссылке: редирект на исходный URL.
- * Доступ только у владельца ссылки — обязателен заголовок X-User-Id, совпадающий с создателем ссылки.
+ * Обрабатывает переход по короткой ссылке: редирект на исходный URL. Доступ только у владельца
+ * ссылки — обязателен заголовок X-User-Id, совпадающий с создателем ссылки.
  */
 @Controller
 @RequestMapping("/")
@@ -32,10 +31,12 @@ public class RedirectController {
     public void redirect(
             @PathVariable String shortCode,
             @RequestHeader(value = USER_ID_HEADER, required = false) UUID userId,
-            HttpServletResponse response
-    ) throws IOException {
+            HttpServletResponse response)
+            throws IOException {
         if (userId == null) {
-            response.sendError(HttpStatus.BAD_REQUEST.value(), "Заголовок X-User-Id обязателен для перехода по ссылке");
+            response.sendError(
+                    HttpStatus.BAD_REQUEST.value(),
+                    "Заголовок X-User-Id обязателен для перехода по ссылке");
             return;
         }
 
@@ -47,7 +48,9 @@ public class RedirectController {
 
         Link link = opt.get();
         if (!link.getUserId().equals(userId)) {
-            response.sendError(HttpStatus.FORBIDDEN.value(), "Доступ запрещён: ссылка принадлежит другому пользователю");
+            response.sendError(
+                    HttpStatus.FORBIDDEN.value(),
+                    "Доступ запрещён: ссылка принадлежит другому пользователю");
             return;
         }
 

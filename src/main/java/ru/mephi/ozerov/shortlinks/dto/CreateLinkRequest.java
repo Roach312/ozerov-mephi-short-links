@@ -12,9 +12,7 @@ public class CreateLinkRequest {
     @URL(message = "Некорректный URL")
     private String originalUrl;
 
-    /**
-     * Максимальное количество переходов. null = без лимита.
-     */
+    /** Максимальное количество переходов. null = без лимита. */
     @Positive(message = "Лимит переходов должен быть положительным")
     private Integer clickLimit;
 }

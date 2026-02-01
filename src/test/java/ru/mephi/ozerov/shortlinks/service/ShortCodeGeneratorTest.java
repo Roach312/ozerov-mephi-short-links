@@ -1,11 +1,10 @@
 package ru.mephi.ozerov.shortlinks.service;
 
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.regex.Pattern;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 class ShortCodeGeneratorTest {
 
@@ -29,7 +28,8 @@ class ShortCodeGeneratorTest {
     @RepeatedTest(20)
     void generate_containsOnlyAlphabetCharacters() {
         String code = generator.generate();
-        assertTrue(ALPHABET_PATTERN.matcher(code).matches(),
+        assertTrue(
+                ALPHABET_PATTERN.matcher(code).matches(),
                 "Code should contain only A-Z, a-z, 0-9: " + code);
     }
 

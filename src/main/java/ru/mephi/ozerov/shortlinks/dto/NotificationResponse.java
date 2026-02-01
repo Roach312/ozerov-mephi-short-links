@@ -1,11 +1,10 @@
 package ru.mephi.ozerov.shortlinks.dto;
 
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 import ru.mephi.ozerov.shortlinks.entity.Notification;
 import ru.mephi.ozerov.shortlinks.entity.NotificationType;
-
-import java.time.Instant;
 
 @Data
 @Builder

@@ -1,5 +1,14 @@
 package ru.mephi.ozerov.shortlinks.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,30 +21,16 @@ import ru.mephi.ozerov.shortlinks.entity.Link;
 import ru.mephi.ozerov.shortlinks.entity.NotificationType;
 import ru.mephi.ozerov.shortlinks.repository.LinkRepository;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class LinkServiceTest {
 
-    @Mock
-    private LinkRepository linkRepository;
+    @Mock private LinkRepository linkRepository;
 
-    @Mock
-    private ShortCodeGenerator shortCodeGenerator;
+    @Mock private ShortCodeGenerator shortCodeGenerator;
 
-    @Mock
-    private NotificationService notificationService;
+    @Mock private NotificationService notificationService;
 
-    @InjectMocks
-    private LinkService linkService;
+    @InjectMocks private LinkService linkService;
 
     private static final UUID USER_ID = UUID.randomUUID();
     private static final String ORIGINAL_URL = "https://www.baeldung.com/java-9-http-client";
@@ -49,11 +44,13 @@ class LinkServiceTest {
     void create_generatesUniqueShortCodeAndSavesLink() {
         when(shortCodeGenerator.generate()).thenReturn("3DZHeG");
         when(linkRepository.existsByShortCode("3DZHeG")).thenReturn(false);
-        when(linkRepository.save(any(Link.class))).thenAnswer(inv -> {
-            Link l = inv.getArgument(0);
-            l.setId(1L);
-            return l;
-        });
+        when(linkRepository.save(any(Link.class)))
+                .thenAnswer(
+                        inv -> {
+                            Link l = inv.getArgument(0);
+                            l.setId(1L);
+                            return l;
+                        });
 
         Link result = linkService.create(ORIGINAL_URL, 10, USER_ID);
 
@@ -70,16 +67,16 @@ class LinkServiceTest {
 
     @Test
     void create_retriesWhenShortCodeExists() {
-        when(shortCodeGenerator.generate())
-                .thenReturn("exists1")
-                .thenReturn("unique1");
+        when(shortCodeGenerator.generate()).thenReturn("exists1").thenReturn("unique1");
         when(linkRepository.existsByShortCode("exists1")).thenReturn(true);
         when(linkRepository.existsByShortCode("unique1")).thenReturn(false);
-        when(linkRepository.save(any(Link.class))).thenAnswer(inv -> {
-            Link l = inv.getArgument(0);
-            l.setId(1L);
-            return l;
-        });
+        when(linkRepository.save(any(Link.class)))
+                .thenAnswer(
+                        inv -> {
+                            Link l = inv.getArgument(0);
+                            l.setId(1L);
+                            return l;
+                        });
 
         Link result = linkService.create(ORIGINAL_URL, null, USER_ID);
 
@@ -157,22 +154,19 @@ class LinkServiceTest {
         assertFalse(result.get().getActive());
 
         ArgumentCaptor<String> msgCaptor = ArgumentCaptor.forClass(String.class);
-        verify(notificationService).create(
-                eq(USER_ID),
-                eq(10L),
-                eq("lim1"),
-                eq(NotificationType.CLICK_LIMIT_REACHED),
-                msgCaptor.capture()
-        );
+        verify(notificationService)
+                .create(
+                        eq(USER_ID),
+                        eq(10L),
+                        eq("lim1"),
+                        eq(NotificationType.CLICK_LIMIT_REACHED),
+                        msgCaptor.capture());
         assertTrue(msgCaptor.getValue().contains("Лимит переходов"));
     }
 
     @Test
     void findByUserId_returnsLinksFromRepository() {
-        List<Link> links = List.of(
-                createActiveLink("a", null, 0),
-                createActiveLink("b", null, 0)
-        );
+        List<Link> links = List.of(createActiveLink("a", null, 0), createActiveLink("b", null, 0));
         when(linkRepository.findByUserIdOrderByCreatedAtDesc(USER_ID)).thenReturn(links);
 
         List<Link> result = linkService.findByUserId(USER_ID);
@@ -237,18 +231,19 @@ class LinkServiceTest {
         Link expired = createActiveLink("ex1", null, 0);
         expired.setId(5L);
         expired.setExpiresAt(Instant.now().minusSeconds(60));
-        when(linkRepository.findExpiredActiveLinks(any(Instant.class))).thenReturn(List.of(expired));
+        when(linkRepository.findExpiredActiveLinks(any(Instant.class)))
+                .thenReturn(List.of(expired));
 
         int count = linkService.deleteExpiredAndNotify();
 
         assertEquals(1, count);
-        verify(notificationService).create(
-                eq(USER_ID),
-                eq(5L),
-                eq("ex1"),
-                eq(NotificationType.LINK_EXPIRED),
-                anyString()
-        );
+        verify(notificationService)
+                .create(
+                        eq(USER_ID),
+                        eq(5L),
+                        eq("ex1"),
+                        eq(NotificationType.LINK_EXPIRED),
+                        anyString());
         verify(linkRepository).delete(expired);
     }
 

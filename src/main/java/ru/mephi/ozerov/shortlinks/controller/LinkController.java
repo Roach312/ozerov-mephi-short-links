@@ -2,6 +2,10 @@ package ru.mephi.ozerov.shortlinks.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -10,11 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.mephi.ozerov.shortlinks.dto.*;
 import ru.mephi.ozerov.shortlinks.entity.Link;
 import ru.mephi.ozerov.shortlinks.service.LinkService;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/links")
@@ -29,85 +28,78 @@ public class LinkController {
     private static final String USER_ID_HEADER = "X-User-Id";
 
     /**
-     * Создание короткой ссылки.
-     * Если заголовок X-User-Id отсутствует — генерируется новый UUID и возвращается в ответе (и в заголовке X-User-Id).
+     * Создание короткой ссылки. Если заголовок X-User-Id отсутствует — генерируется новый UUID и
+     * возвращается в ответе (и в заголовке X-User-Id).
      */
     @PostMapping
     public ResponseEntity<?> create(
             @RequestHeader(value = USER_ID_HEADER, required = false) UUID userId,
             @Valid @RequestBody CreateLinkRequest request,
-            HttpServletResponse response
-    ) {
+            HttpServletResponse response) {
         UUID effectiveUserId = userId != null ? userId : UUID.randomUUID();
-        Link link = linkService.create(
-                request.getOriginalUrl(),
-                request.getClickLimit(),
-                effectiveUserId
-        );
+        Link link =
+                linkService.create(
+                        request.getOriginalUrl(), request.getClickLimit(), effectiveUserId);
         response.setHeader(USER_ID_HEADER, effectiveUserId.toString());
-        CreateLinkResponse body = new CreateLinkResponse(
-                LinkResponse.from(link, baseUrl),
-                effectiveUserId
-        );
+        CreateLinkResponse body =
+                new CreateLinkResponse(LinkResponse.from(link, baseUrl), effectiveUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
-    /**
-     * Список ссылок текущего пользователя. X-User-Id обязателен.
-     */
+    /** Список ссылок текущего пользователя. X-User-Id обязателен. */
     @GetMapping
-    public ResponseEntity<?> list(@RequestHeader(value = USER_ID_HEADER, required = false) UUID userId) {
+    public ResponseEntity<?> list(
+            @RequestHeader(value = USER_ID_HEADER, required = false) UUID userId) {
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Заголовок X-User-Id обязателен для просмотра списка ссылок");
         }
-        List<LinkResponse> list = linkService.findByUserId(userId).stream()
-                .map(l -> LinkResponse.from(l, baseUrl))
-                .collect(Collectors.toList());
+        List<LinkResponse> list =
+                linkService.findByUserId(userId).stream()
+                        .map(l -> LinkResponse.from(l, baseUrl))
+                        .collect(Collectors.toList());
         return ResponseEntity.ok(list);
     }
 
-    /**
-     * Получить одну ссылку по id. Только создатель.
-     */
+    /** Получить одну ссылку по id. Только создатель. */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getOne(@PathVariable Long id, @RequestHeader(value = USER_ID_HEADER, required = false) UUID userId) {
+    public ResponseEntity<?> getOne(
+            @PathVariable Long id,
+            @RequestHeader(value = USER_ID_HEADER, required = false) UUID userId) {
         if (userId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Заголовок X-User-Id обязателен");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Заголовок X-User-Id обязателен");
         }
-        return linkService.findByIdAndUserId(id, userId)
+        return linkService
+                .findByIdAndUserId(id, userId)
                 .map(l -> ResponseEntity.ok(LinkResponse.from(l, baseUrl)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Обновить ссылку (URL и/или лимит). Только создатель.
-     */
+    /** Обновить ссылку (URL и/или лимит). Только создатель. */
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable Long id,
             @RequestHeader(value = USER_ID_HEADER, required = false) UUID userId,
-            @Valid @RequestBody UpdateLinkRequest request
-    ) {
+            @Valid @RequestBody UpdateLinkRequest request) {
         if (userId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Заголовок X-User-Id обязателен");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Заголовок X-User-Id обязателен");
         }
-        Optional<Link> updated = linkService.update(id, userId, request.getOriginalUrl(), request.getClickLimit());
-        return updated
-                .map(l -> ResponseEntity.ok(LinkResponse.from(l, baseUrl)))
+        Optional<Link> updated =
+                linkService.update(id, userId, request.getOriginalUrl(), request.getClickLimit());
+        return updated.map(l -> ResponseEntity.ok(LinkResponse.from(l, baseUrl)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Удалить ссылку. Только создатель.
-     */
+    /** Удалить ссылку. Только создатель. */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(
             @PathVariable Long id,
-            @RequestHeader(value = USER_ID_HEADER, required = false) UUID userId
-    ) {
+            @RequestHeader(value = USER_ID_HEADER, required = false) UUID userId) {
         if (userId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Заголовок X-User-Id обязателен");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Заголовок X-User-Id обязателен");
         }
         return linkService.delete(id, userId)
                 ? ResponseEntity.noContent().build()

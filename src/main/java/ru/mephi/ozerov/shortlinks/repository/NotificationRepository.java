@@ -1,10 +1,9 @@
 package ru.mephi.ozerov.shortlinks.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import ru.mephi.ozerov.shortlinks.entity.Notification;
-
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+import ru.mephi.ozerov.shortlinks.entity.Notification;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
